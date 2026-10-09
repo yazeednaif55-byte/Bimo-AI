@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bimo AI - مساعدك الذكي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked for Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Google Fonts: Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.6);
+        }
+        .markdown-body pre {
+            background-color: #1e1b4b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            direction: ltr;
+            text-align: left;
+        }
+        .markdown-body code {
+            font-family: monospace;
+            background-color: rgba(139, 92, 246, 0.15);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+        }
+        .markdown-body pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .markdown-body p {
+            margin-bottom: 0.75rem;
+        }
+        .markdown-body ul {
+            list-style-type: disc;
+            margin-right: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .markdown-body ol {
+            list-style-type: decimal;
+            margin-right: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 h-screen flex overflow-hidden transition-colors duration-300">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 right-0 z-50 w-72 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-300 transform translate-x-full md:translate-x-0 md:static">
+        <!-- Sidebar Header -->
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                    <i class="fa-solid fa-robot text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-brand-600 to-indigo-500 bg-clip-text text-transparent">Bimo AI</h1>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Gemini Engine</span>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- New Chat Button -->
+        <div class="p-4">
+            <button onclick="createNewChat()" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium shadow-md shadow-brand-600/20 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+                <i class="fa-solid fa-plus"></i>
+                <span>محادثة جديدة</span>
+            </button>
+        </div>
+
+        <!-- Chat History List -->
+        <div id="chat-list" class="flex-1 overflow-y-auto px-4 space-y-2 py-2">
+            <!-- Dynamically populated chats -->
+        </div>
+
+        <!-- Sidebar Footer / Settings Button -->
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <button onclick="openSettingsModal()" class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                <i class="fa-solid fa-gear"></i>
+                <span>إعدادات مفتاح API</span>
+            </button>
+            <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <i id="theme-icon" class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full relative bg-slate-50 dark:bg-slate-950">
+        <!-- Top Navbar -->
+        <header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 flex items-center justify-between z-10">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <h2 id="current-chat-title" class="font-semibold text-base md:text-lg truncate max-w-xs md:max-w-md">محادثة جديدة</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Gemini Active
+                </span>
+            </div>
+        </header>
+
+        <!-- Chat Message Container -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+            <!-- Welcome Screen (Shown when no messages) -->
+            <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+                <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white text-3xl shadow-xl shadow-brand-500/30 mb-6">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">أهلاً بك في Bimo AI</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">مساعدك الذكي المدعوم بنماذج Gemini المتقدمة. اسألني عن أي شيء، برمجة، ترجمة، أو إبداع!</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                    <button onclick="sendPresetPrompt('اكتب قصة قصيرة خيالية عن مستقبل الذكاء الاصطناعي')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-pen-nib text-brand-500 mb-1 block"></i>
+                        اكتب قصة خيالية عن المستقبل
+                    </button>
+                    <button onclick="sendPresetPrompt('اشرح لي مفهوم البرمجة غير المتزامنة (Async/Await) باختصار')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-code text-brand-500 mb-1 block"></i>
+                        اشرح البرمجة غير المتزامنة
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+            <div class="max-w-4xl mx-auto relative">
+                <form id="chat-form" onsubmit="handleSendMessage(event)" class="flex items-end gap-2 bg-slate-100 dark:bg-slate-800/80 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:border-brand-500 transition-colors">
+                    <textarea id="user-input" rows="1" placeholder="اكتب رسالتك هنا... (Shift + Enter لسطر جديد)" class="flex-1 bg-transparent border-none focus:outline-none resize-none max-h-36 p-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400" onkeydown="handleKeyDown(event)"></textarea>
+                    <button type="submit" id="send-btn" class="w-10 h-10 rounded-xl bg-brand-600 hover:bg-brand-700 text-white flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </form>
+                <div class="text-center mt-2">
+                    <span class="text-[11px] text-slate-400">Bimo AI قد ينشئ معلومات غير دقيقة أحياناً. تحقق من المعلومات المهمة.</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl transform transition-all">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-key text-brand-500"></i>
+                    إعدادات مفتاح Gemini API
+                </h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                أدخل مفتاح Google Gemini API الخاص بك لتفعيل عمل المساعد الذكي. يتم تخزين المفتاح بشكل محلي آمن في متصفحك فقط.
+            </p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">مفتاح API (Gemini Key)</label>
+                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">إلغاء</button>
+                    <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white transition-colors">حفظ المفتاح</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 left-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-xl text-sm font-medium flex items-center gap-2">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-message">تم الحفظ بنجاح</span>
+    </div>
+
+    <script>
+        // App State
+        let chats = JSON.parse(localStorage.getItem('bimo_chats')) || [];
+        let currentChatId = localStorage.getItem('bimo_current_chat') || null;
+        let apiKey = localStorage.getItem('bimo_api_key') || '';
+        let isGenerating = false;
+
+        // Initialize App on Load
+        window.onload = function() {
+            initTheme();
+            if (chats.length === 0) {
+                createNewChat();
+            } else {
+                if (!currentChatId || !chats.some(c => c.id === currentChatId)) {
+                    currentChatId = chats[0].id;
+                }
+                renderChatList();
+                loadCurrentChat();
+            }
+
+            // Check if API Key exists, prompt if missing
+            if (!apiKey) {
+                setTimeout(() => {
+                    openSettingsModal();
+                }, 500);
+            }
+        };
+
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('bimo_theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+            } else {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').className = 'fa-solid fa-moon';
+            }
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('bimo_theme', 'light');
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('bimo_theme', 'dark');
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        // Sidebar Responsive Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('translate-x-full');
+        }
+
+        // Settings Modal Management
+        function openSettingsModal() {
+            document.getElementById('api-key-input').value = apiKey;
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('flex');
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('api-key-input').value.trim();
+            if (!val) {
+                showToast('الرجاء إدخال مفتاح API صحيح', 'error');
+                return;
+            }
+            apiKey = val;
+            localStorage.setItem('bimo_api_key', apiKey);
+            closeSettingsModal();
+            showToast('تم حفظ مفتاح API بنجاح');
+        }
+
+        // Toast Notification
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-message').innerText = msg;
+            if (type === 'error') {
+                icon.className = 'fa-solid fa-circle-exclamation text-rose-400';
+            } else {
+                icon.className = 'fa-solid fa-circle-check text-emerald-400';
+            }
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Chat Management
+        function createNewChat() {
+            const newChat = {
+                id: 'chat_' + Date.now(),
+                title: 'محادثة جديدة',
+                messages: []
+            };
+            chats.unshift(newChat);
+            currentChatId = newChat.id;
+            saveChatsToStorage();
+            renderChatList();
+            loadCurrentChat();
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+        }
+
+        function saveChatsToStorage() {
+            localStorage.setItem('bimo_chats', JSON.stringify(chats));
+            localStorage.setItem('bimo_current_chat', currentChatId);
+        }
+
+        function renderChatList() {
+            const listEl = document.getElementById('chat-list');
+            listEl.innerHTML = '';
+            chats.forEach(chat => {
+                const isActive = chat.id === currentChatId;
+                const div = document.createElement('div');
+                div.className = `group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 font-medium border border-brand-500/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`;
+                div.onclick = () => selectChat(chat.id);
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 truncate">
+                        <i class="fa-regular fa-message text-sm"></i>
+                        <span class="truncate text-sm">${escapeHtml(chat.title)}</span>
+                    </div>
+                    <button onclick="deleteChat(event, '${chat.id}')" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition-opacity p-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function selectChat(id) {
+            currentChatId = id;
+            saveChatsToStorage();
+            renderChatList();
+            loadCurrentChat();
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+        }
+
+        function deleteChat(e, id) {
+            e.stopPropagation();
+            chats = chats.filter(c => c.id !== id);
+            if (chats.length === 0) {
+                createNewChat();
+            } else if (currentChatId === id) {
+                currentChatId = chats[0].id;
+            }
+            saveChatsToStorage();
+            renderChatList();
+            loadCurrentChat();
+        }
+
+        function loadCurrentChat() {
+            const chat = chats.find(c => c.id === currentChatId);
+            if (!chat) return;
+            
+            document.getElementById('current-chat-title').innerText = chat.title;
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+
+            if (chat.messages.length === 0) {
+                container.innerHTML = `
+                    <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+                        <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white text-3xl shadow-xl shadow-brand-500/30 mb-6">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">أهلاً بك في Bimo AI</h3>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">مساعدك الذكي المدعوم بنماذج Gemini المتقدمة. اسألني عن أي شيء، برمجة، ترجمة، أو إبداع!</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                            <button onclick="sendPresetPrompt('اكتب قصة قصيرة خيالية عن مستقبل الذكاء الاصطناعي')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                                <i class="fa-solid fa-pen-nib text-brand-500 mb-1 block"></i>
+                                اكتب قصة خيالية عن المستقبل
+                            </button>
+                            <button onclick="sendPresetPrompt('اشرح لي مفهوم البرمجة غير المتزامنة (Async/Await) باختصار')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                                <i class="fa-solid fa-code text-brand-500 mb-1 block"></i>
+                                اشرح البرمجة غير المتزامنة
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                chat.messages.forEach(msg => {
+                    appendMessageNode(msg.role, msg.content, false);
+                });
+                scrollToBottom();
+            }
+        }
+
+        // Messaging & Interaction Logic
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chat-form').requestSubmit();
+            }
+        }
+
+        function sendPresetPrompt(text) {
+            document.getElementById('user-input').value = text;
+            document.getElementById('chat-form').requestSubmit();
+        }
+
+        async function handleSendMessage(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('user-input');
+            const text = inputEl.value.trim();
+            if (!text || isGenerating) return;
+
+            if (!apiKey) {
+                openSettingsModal();
+                showToast('الرجاء إدخال مفتاح Gemini API أولاً', 'error');
+                return;
+            }
+
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+
+            // Remove welcome screen if present
+            const welcome = document.getElementById('welcome-screen');
+            if (welcome) welcome.remove();
+
+            // Add user message
+            const chat = chats.find(c => c.id === currentChatId);
+            if (chat.messages.length === 0) {
+                chat.title = text.length > 30 ? text.substring(0, 30) + '...' : text;
+                document.getElementById('current-chat-title').innerText = chat.title;
+                renderChatList();
+            }
+
+            chat.messages.push({ role: 'user', content: text });
+            appendMessageNode('user', text, true);
+            saveChatsToStorage();
+
+            // Prepare AI placeholder container
+            isGenerating = true;
+            document.getElementById('send-btn').disabled = true;
+
+            const aiMsgId = 'ai_msg_' + Date.now();
+            appendMessageNode('model', 'جاري التفكير...', true, aiMsgId);
+
+            try {
+                // Call Gemini API with exponential backoff retry mechanism
+                const responseText = await callGeminiWithBackoff(chat.messages);
+                
+                // Update chat history with response
+                chat.messages.push({ role: 'model', content: responseText });
+                saveChatsToStorage();
+
+                // Update UI node with parsed Markdown
+                const msgNode = document.getElementById(aiMsgId);
+                if (msgNode) {
+                    const contentDiv = msgNode.querySelector('.message-content');
+                    contentDiv.innerHTML = marked.parse(responseText);
+                }
+            } catch (error) {
+                console.error(error);
+                const msgNode = document.getElementById(aiMsgId);
+                if (msgNode) {
+                    const contentDiv = msgNode.querySelector('.message-content');
+                    contentDiv.innerHTML = `<span class="text-rose-500">حدث خطأ أثناء الاتصال بـ Gemini API: ${escapeHtml(error.message)}</span>`;
+                }
+            } finally {
+                isGenerating = false;
+                document.getElementById('send-btn').disabled = false;
+                scrollToBottom();
+            }
+        }
+
+        // Gemini API Call with Exponential Backoff
+        async function callGeminiWithBackoff(messages, retries = 3, delay = 1000) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            
+            // Format contents for Gemini API
+            const formattedContents = messages.map(m => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.content }]
+            }));
+
+            const payload = {
+                contents: formattedContents,
+                systemInstruction: {
+                    parts: [{ text: "أنت Bimo AI، مساعد ذكي ومتقدم مدمج في تطبيق ويب، ودود، دقيق، وتقدم إجاباتك بلغة عربية فصحى وبأسلوب منسق واحترافي باستخدام Markdown." }]
+                }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    } else {
+                        throw new Error('تنسيق الاستجابة غير متوقع من الخادم.');
+                    }
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // Exponential increase
+                }
+            }
+        }
+
+        function appendMessageNode(role, text, shouldScroll = true, customId = null) {
+            const container = document.getElementById('chat-messages');
+            const isUser = role === 'user';
+            
+            const wrapper = document.createElement('div');
+            if (customId) wrapper.id = customId;
+            wrapper.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''} animate-fadeIn`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white ${isUser ? 'bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-md shadow-indigo-500/20' : 'bg-gradient-to-tr from-brand-600 to-indigo-500 shadow-md shadow-brand-500/20'}`;
+            avatar.innerHTML = isUser ? '<i class="fa-solid fa-user text-sm"></i>' : '<i class="fa-solid fa-robot text-sm"></i>';
+
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${isUser ? 'bg-brand-600 text-white rounded-tl-sm' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-tr-sm markdown-body'}`;
+
+            if (isUser) {
+                bubble.innerText = text;
+            } else {
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                if (text === 'جاري التفكير...') {
+                    contentDiv.innerHTML = `<div class="flex items-center gap-2 text-slate-400"><i class="fa-solid fa-circle-notch animate-spin"></i><span>جاري التفكير...</span></div>`;
+                } else {
+                    contentDiv.innerHTML = marked.parse(text);
+                }
+                bubble.appendChild(contentDiv);
+            }
+
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(bubble);
+            container.appendChild(wrapper);
+
+            if (shouldScroll) {
+                scrollToBottom();
+            }
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-messages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
