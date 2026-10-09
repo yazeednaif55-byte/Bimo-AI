@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bimo AI - مساعدك الذكي</title>
+    <title>Bimo AI - مساعدك الذكي والصوتي</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -36,7 +36,6 @@
         body {
             font-family: 'Cairo', sans-serif;
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -84,6 +83,14 @@
             margin-right: 1.5rem;
             margin-bottom: 0.75rem;
         }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .mic-active {
+            animation: pulse-ring 1.5s infinite ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 h-screen flex overflow-hidden transition-colors duration-300">
@@ -98,7 +105,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg tracking-wide bg-gradient-to-r from-brand-600 to-indigo-500 bg-clip-text text-transparent">Bimo AI</h1>
-                    <span class="text-xs text-slate-500 dark:text-slate-400">Gemini Engine</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Gemini Voice & Chat</span>
                 </div>
             </div>
             <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
@@ -123,7 +130,7 @@
         <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <button onclick="openSettingsModal()" class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
                 <i class="fa-solid fa-gear"></i>
-                <span>إعدادات مفتاح API</span>
+                <span>الإعدادات</span>
             </button>
             <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <i id="theme-icon" class="fa-solid fa-moon"></i>
@@ -141,7 +148,12 @@
                 </button>
                 <h2 id="current-chat-title" class="font-semibold text-base md:text-lg truncate max-w-xs md:max-w-md">محادثة جديدة</h2>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
+                <!-- Voice Mode Toggle Button -->
+                <button onclick="toggleVoiceMode()" id="voice-mode-toggle" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-brand-500/10 hover:text-brand-500 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-volume-high text-brand-500"></i>
+                    <span id="voice-mode-text">الصوت: مفعل</span>
+                </button>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                     <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                     Gemini Active
@@ -151,21 +163,21 @@
 
         <!-- Chat Message Container -->
         <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-            <!-- Welcome Screen (Shown when no messages) -->
+            <!-- Welcome Screen -->
             <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
                 <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white text-3xl shadow-xl shadow-brand-500/30 mb-6">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <i class="fa-solid fa-microphone-lines"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-2">أهلاً بك في Bimo AI</h3>
-                <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">مساعدك الذكي المدعوم بنماذج Gemini المتقدمة. اسألني عن أي شيء، برمجة، ترجمة، أو إبداع!</p>
+                <h3 class="text-2xl font-bold mb-2">أهلاً بك في Bimo AI الصوتي</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">يمكنك التحدث عبر المايكروفون بالضغط على أيقونة المايك وسأجيبك بالصوت والنص!</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                    <button onclick="sendPresetPrompt('اكتب قصة قصيرة خيالية عن مستقبل الذكاء الاصطناعي')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
-                        <i class="fa-solid fa-pen-nib text-brand-500 mb-1 block"></i>
-                        اكتب قصة خيالية عن المستقبل
+                    <button onclick="sendPresetPrompt('مرحباً Bimo، هل يمكنك إخباري بقصة قصيرة؟')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-book-open text-brand-500 mb-1 block"></i>
+                        احكِ لي قصة قصيرة
                     </button>
-                    <button onclick="sendPresetPrompt('اشرح لي مفهوم البرمجة غير المتزامنة (Async/Await) باختصار')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
-                        <i class="fa-solid fa-code text-brand-500 mb-1 block"></i>
-                        اشرح البرمجة غير المتزامنة
+                    <button onclick="sendPresetPrompt('ما هي أفضل طريقة لتعلّق لغة جديدة بسرعة؟')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid fa-lightbulb text-brand-500 mb-1 block"></i>
+                        نصائح لتعلّق لغة جديدة
                     </button>
                 </div>
             </div>
@@ -175,13 +187,17 @@
         <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
             <div class="max-w-4xl mx-auto relative">
                 <form id="chat-form" onsubmit="handleSendMessage(event)" class="flex items-end gap-2 bg-slate-100 dark:bg-slate-800/80 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:border-brand-500 transition-colors">
-                    <textarea id="user-input" rows="1" placeholder="اكتب رسالتك هنا... (Shift + Enter لسطر جديد)" class="flex-1 bg-transparent border-none focus:outline-none resize-none max-h-36 p-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400" onkeydown="handleKeyDown(event)"></textarea>
+                    <button type="button" id="mic-btn" onclick="toggleSpeechRecognition()" title="التحدث بالصوت" class="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-brand-500 hover:text-white text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-microphone text-sm"></i>
+                    </button>
+                    <textarea id="user-input" rows="1" placeholder="اكتب رسالتك أو تحدث بالمايكروفون... (Shift + Enter لسطر جديد)" class="flex-1 bg-transparent border-none focus:outline-none resize-none max-h-36 p-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400" onkeydown="handleKeyDown(event)"></textarea>
                     <button type="submit" id="send-btn" class="w-10 h-10 rounded-xl bg-brand-600 hover:bg-brand-700 text-white flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-paper-plane text-sm"></i>
                     </button>
                 </form>
-                <div class="text-center mt-2">
-                    <span class="text-[11px] text-slate-400">Bimo AI قد ينشئ معلومات غير دقيقة أحياناً. تحقق من المعلومات المهمة.</span>
+                <div class="flex justify-between items-center mt-2 px-1">
+                    <span id="speech-status" class="text-[11px] text-brand-500 font-medium hidden"><i class="fa-solid fa-circle-dot animate-ping ml-1"></i> جاري الاستماع لصوتك...</span>
+                    <span class="text-[11px] text-slate-400">Bimo AI مدعوم بنموذج Gemini الصوتي المتطور.</span>
                 </div>
             </div>
         </div>
@@ -192,24 +208,32 @@
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl transform transition-all">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-bold text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-key text-brand-500"></i>
-                    إعدادات مفتاح Gemini API
+                    <i class="fa-solid fa-gear text-brand-500"></i>
+                    إعدادات التطبيق والصوت
                 </h3>
                 <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                أدخل مفتاح Google Gemini API الخاص بك لتفعيل عمل المساعد الذكي. يتم تخزين المفتاح بشكل محلي آمن في متصفحك فقط.
-            </p>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">مفتاح API (Gemini Key)</label>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">مفتاح Google Gemini API</label>
                     <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-300">اختر صوت المجيب (Gemini TTS Voice)</label>
+                    <select id="voice-select" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                        <option value="Zephyr">Zephyr (ساطع وحيوي)</option>
+                        <option value="Kore" selected>Kore (ثابت واحترافي)</option>
+                        <option value="Puck">Puck (متحمس ومبهج)</option>
+                        <option value="Charon">Charon (معلوماتي ورسمي)</option>
+                        <option value="Fenrir">Fenrir (مفعم بالحيوية)</option>
+                        <option value="Aoede">Aoede (هادئ وناعم)</option>
+                    </select>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">إلغاء</button>
-                    <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white transition-colors">حفظ المفتاح</button>
+                    <button onclick="saveSettings()" class="px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white transition-colors">حفظ الإعدادات</button>
                 </div>
             </div>
         </div>
@@ -226,11 +250,18 @@
         let chats = JSON.parse(localStorage.getItem('bimo_chats')) || [];
         let currentChatId = localStorage.getItem('bimo_current_chat') || null;
         let apiKey = localStorage.getItem('bimo_api_key') || '';
+        let selectedVoice = localStorage.getItem('bimo_voice') || 'Kore';
+        let isVoiceEnabled = localStorage.getItem('bimo_voice_enabled') !== 'false';
         let isGenerating = false;
+        let recognition = null;
+        let isListening = false;
 
         // Initialize App on Load
         window.onload = function() {
             initTheme();
+            updateVoiceModeUI();
+            document.getElementById('voice-select').value = selectedVoice;
+            
             if (chats.length === 0) {
                 createNewChat();
             } else {
@@ -241,12 +272,13 @@
                 loadCurrentChat();
             }
 
-            // Check if API Key exists, prompt if missing
             if (!apiKey) {
                 setTimeout(() => {
                     openSettingsModal();
                 }, 500);
             }
+
+            initSpeechRecognition();
         };
 
         // Theme Management
@@ -275,15 +307,209 @@
             }
         }
 
-        // Sidebar Responsive Toggle
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('translate-x-full');
         }
 
+        // Voice Mode Toggle
+        function toggleVoiceMode() {
+            isVoiceEnabled = !isVoiceEnabled;
+            localStorage.setItem('bimo_voice_enabled', isVoiceEnabled);
+            updateVoiceModeUI();
+            showToast(isVoiceEnabled ? 'تم تفعيل الرد الصوتي' : 'تم كتم الرد الصوتي');
+        }
+
+        function updateVoiceModeUI() {
+            const btn = document.getElementById('voice-mode-toggle');
+            const txt = document.getElementById('voice-mode-text');
+            if (isVoiceEnabled) {
+                btn.className = "px-3 py-1.5 rounded-xl text-xs font-medium bg-brand-500/10 text-brand-500 border border-brand-500/30 flex items-center gap-2 transition-all";
+                txt.innerText = 'الصوت: مفعل';
+            } else {
+                btn.className = "px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-all";
+                txt.innerText = 'الصوت: معطل';
+            }
+        }
+
+        // Speech-to-Text (Microphone Input)
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn('Speech recognition not supported in this browser.');
+                return;
+            }
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ar-SA';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('mic-btn').classList.add('bg-brand-600', 'text-white', 'mic-active');
+                document.getElementById('speech-status').classList.remove('hidden');
+            };
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                const inputEl = document.getElementById('user-input');
+                if (finalTranscript) {
+                    inputEl.value = finalTranscript;
+                    stopSpeechRecognition();
+                    document.getElementById('chat-form').requestSubmit();
+                } else if (interimTranscript) {
+                    inputEl.value = interimTranscript;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+                stopSpeechRecognition();
+                showToast('حدث خطأ في التعرف على الصوت', 'error');
+            };
+
+            recognition.onend = function() {
+                stopSpeechRecognition();
+            };
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognition) {
+                showToast('متصفحك لا يدعم التعرف على الصوت بالمايكروفون', 'error');
+                return;
+            }
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        function stopSpeechRecognition() {
+            isListening = false;
+            const micBtn = document.getElementById('mic-btn');
+            if (micBtn) {
+                micBtn.classList.remove('bg-brand-600', 'text-white', 'mic-active');
+            }
+            const statusEl = document.getElementById('speech-status');
+            if (statusEl) {
+                statusEl.classList.add('hidden');
+            }
+        }
+
+        // Text-to-Speech via Gemini TTS API (`gemini-2.5-flash-preview-tts`)
+        async function playGeminiTTS(textToSpeak) {
+            if (!isVoiceEnabled || !apiKey) return;
+            try {
+                // تصفية النص ليكون مناسباً وسريعاً للقراءة الصوتية
+                const cleanText = textToSpeak.replace(/```[\s\S]*?```/g, 'تم تضمين كود برمجي.').replace(/[*#_`]/g, '').trim();
+                if (!cleanText) return;
+                
+                // استخدام النموذج الأحدث للـ TTS أو العودة للـ Flash القياسي
+                const ttsApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{
+                        parts: [{ text: `اقرأ بسرعة وبشكل طبيعي وبصوت واضح: ${cleanText.substring(0, 250)}` }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: selectedVoice }
+                            }
+                        }
+                    }
+                };
+
+                const response = await fetch(ttsApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) return;
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    // تحويل سريع جداً لبيانات الصوت بدون تأخير مع استخدام TypedArrays محسنة
+                    const binaryString = atob(audioData);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    const pcm16 = new Int16Array(bytes.buffer);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    audio.playbackRate = 1.15; // تسريع الصوت قليلاً ليصبح فورياً وحيوياً
+                    audio.play().catch(e => console.log("Audio autoplay restricted:", e));
+                }
+            } catch (err) {
+                console.error("TTS playback error:", err);
+            }
+        }
+
+        // Helper to convert raw PCM to WAV container for playback
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
         // Settings Modal Management
         function openSettingsModal() {
             document.getElementById('api-key-input').value = apiKey;
+            document.getElementById('voice-select').value = selectedVoice;
             document.getElementById('settings-modal').classList.remove('hidden');
             document.getElementById('settings-modal').classList.add('flex');
         }
@@ -293,19 +519,21 @@
             document.getElementById('settings-modal').classList.add('hidden');
         }
 
-        function saveApiKey() {
-            const val = document.getElementById('api-key-input').value.trim();
-            if (!val) {
+        function saveSettings() {
+            const keyVal = document.getElementById('api-key-input').value.trim();
+            const voiceVal = document.getElementById('voice-select').value;
+            if (!keyVal) {
                 showToast('الرجاء إدخال مفتاح API صحيح', 'error');
                 return;
             }
-            apiKey = val;
+            apiKey = keyVal;
+            selectedVoice = voiceVal;
             localStorage.setItem('bimo_api_key', apiKey);
+            localStorage.setItem('bimo_voice', selectedVoice);
             closeSettingsModal();
-            showToast('تم حفظ مفتاح API بنجاح');
+            showToast('تم حفظ الإعدادات بنجاح');
         }
 
-        // Toast Notification
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
@@ -400,18 +628,18 @@
                 container.innerHTML = `
                     <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
                         <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white text-3xl shadow-xl shadow-brand-500/30 mb-6">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <i class="fa-solid fa-microphone-lines"></i>
                         </div>
-                        <h3 class="text-2xl font-bold mb-2">أهلاً بك في Bimo AI</h3>
-                        <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">مساعدك الذكي المدعوم بنماذج Gemini المتقدمة. اسألني عن أي شيء، برمجة، ترجمة، أو إبداع!</p>
+                        <h3 class="text-2xl font-bold mb-2">أهلاً بك في Bimo AI الصوتي</h3>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">يمكنك التحدث عبر المايكروفون بالضغط على أيقونة المايك وسأجيبك بالصوت والنص!</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                            <button onclick="sendPresetPrompt('اكتب قصة قصيرة خيالية عن مستقبل الذكاء الاصطناعي')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
-                                <i class="fa-solid fa-pen-nib text-brand-500 mb-1 block"></i>
-                                اكتب قصة خيالية عن المستقبل
+                            <button onclick="sendPresetPrompt('مرحباً Bimo، هل يمكنك إخباري بقصة قصيرة؟')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                                <i class="fa-solid fa-book-open text-brand-500 mb-1 block"></i>
+                                احكِ لي قصة قصيرة
                             </button>
-                            <button onclick="sendPresetPrompt('اشرح لي مفهوم البرمجة غير المتزامنة (Async/Await) باختصار')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
-                                <i class="fa-solid fa-code text-brand-500 mb-1 block"></i>
-                                اشرح البرمجة غير المتزامنة
+                            <button onclick="sendPresetPrompt('ما هي أفضل طريقة لتعلّق لغة جديدة بسرعة؟')" class="p-3 text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-brand-500 dark:hover:border-brand-500 transition-all text-xs text-slate-600 dark:text-slate-300">
+                                <i class="fa-solid fa-lightbulb text-brand-500 mb-1 block"></i>
+                                نصائح لتعلّق لغة جديدة
                             </button>
                         </div>
                     </div>
@@ -452,11 +680,9 @@
             inputEl.value = '';
             inputEl.style.height = 'auto';
 
-            // Remove welcome screen if present
             const welcome = document.getElementById('welcome-screen');
             if (welcome) welcome.remove();
 
-            // Add user message
             const chat = chats.find(c => c.id === currentChatId);
             if (chat.messages.length === 0) {
                 chat.title = text.length > 30 ? text.substring(0, 30) + '...' : text;
@@ -468,7 +694,6 @@
             appendMessageNode('user', text, true);
             saveChatsToStorage();
 
-            // Prepare AI placeholder container
             isGenerating = true;
             document.getElementById('send-btn').disabled = true;
 
@@ -476,25 +701,32 @@
             appendMessageNode('model', 'جاري التفكير...', true, aiMsgId);
 
             try {
-                // Call Gemini API with exponential backoff retry mechanism
                 const responseText = await callGeminiWithBackoff(chat.messages);
                 
-                // Update chat history with response
                 chat.messages.push({ role: 'model', content: responseText });
                 saveChatsToStorage();
 
-                // Update UI node with parsed Markdown
                 const msgNode = document.getElementById(aiMsgId);
                 if (msgNode) {
                     const contentDiv = msgNode.querySelector('.message-content');
                     contentDiv.innerHTML = marked.parse(responseText);
                 }
+
+                // Trigger voice playback (optimized for speed)
+                playGeminiTTS(responseText);
+
             } catch (error) {
                 console.error(error);
                 const msgNode = document.getElementById(aiMsgId);
                 if (msgNode) {
                     const contentDiv = msgNode.querySelector('.message-content');
-                    contentDiv.innerHTML = `<span class="text-rose-500">حدث خطأ أثناء الاتصال بـ Gemini API: ${escapeHtml(error.message)}</span>`;
+                    let errorMsg = error.message;
+                    if (errorMsg.includes('Quota exceeded') || errorMsg.includes('resource_exhausted')) {
+                        errorMsg = `⚠️ <b>تجاوزت الحد المجاني لطلبات Gemini API (Quota Exceeded).</b><br><br>الرجاء الانتظار قليلاً، أو التأكد من حسابك على <a href="https://ai.google.dev/" target="_blank" class="underline text-brand-400">Google AI Studio</a>، أو إدخال مفتاح API آخر من الإعدادات.`;
+                    } else {
+                        errorMsg = `حدث خطأ أثناء الاتصال بـ Gemini API: ${escapeHtml(errorMsg)}`;
+                    }
+                    contentDiv.innerHTML = `<div class="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs leading-relaxed">${errorMsg}</div>`;
                 }
             } finally {
                 isGenerating = false;
@@ -503,11 +735,10 @@
             }
         }
 
-        // Gemini API Call with Exponential Backoff
-        async function callGeminiWithBackoff(messages, retries = 3, delay = 1000) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        async function callGeminiWithBackoff(messages, retries = 2, delay = 1000) {
+            // استخدام النموذج الحديث المطلوب `gemini-3.8-flash`
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
             
-            // Format contents for Gemini API
             const formattedContents = messages.map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [{ text: m.content }]
@@ -520,7 +751,7 @@
                 }
             };
 
-            for (let i = 0; i < retries; i++) {
+            for (let i = 0; i <= retries; i++) {
                 try {
                     const response = await fetch(apiUrl, {
                         method: 'POST',
@@ -530,7 +761,8 @@
 
                     if (!response.ok) {
                         const errData = await response.json().catch(() => ({}));
-                        throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+                        const errMsg = errData.error?.message || `HTTP error! status: ${response.status}`;
+                        throw new Error(errMsg);
                     }
 
                     const result = await response.json();
@@ -541,9 +773,11 @@
                         throw new Error('تنسيق الاستجابة غير متوقع من الخادم.');
                     }
                 } catch (error) {
-                    if (i === retries - 1) throw error;
+                    if (i === retries || error.message.includes('Quota exceeded') || error.message.includes('resource_exhausted')) {
+                        throw error;
+                    }
                     await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2; // Exponential increase
+                    delay *= 2;
                 }
             }
         }
